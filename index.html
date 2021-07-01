@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width initial-scale=1.0">
+	<title>Covid Map Test</title>
+	<style>
+		body {
+			margin: 0px;
+			padding: 0px;
+			box-sizing: border-box;
+		}
+
+		#map {
+			position: relative;
+			height: 400px;
+			width: 80%;
+			margin: 0 auto;
+		}
+	</style>
+</head>
+<body>
+	<h1>This is the map</h1>
+	<button id="footprint-button">Hide footprints</button>
+	<div id="map"></div>
+	<script src="fetch-footprints.js"></script>
+	<script>
+		
+
+		var footprintIcon = "https://i.ibb.co/N3tfg1D/CFIW-pink-pin-72ppi-transparent.png";
+		var vaccinationIcon = "https://i.ibb.co/12DjsWm/CFIW-mint-green-health-pin.png"
+		var date = "5/30";
+		let url = "https://markoco14.github.io/google-sheet-test/map-footprints-json.json";
+		var markers = [];
+
+		
+
+		function initMap() {
+			//we need to define the options
+			//doing that in a variable is good
+			var options = {
+				zoom: 12,
+				center: {lat:24.1477, lng: 120.6736},
+				//mapTypeControl: false,
+				disableDefaultUI: true,
+			};
+
+			//create reference to footprint toggle button
+			const footprintToggle = document.getElementById('footprint-button');
+			let footprintMarkersActive = true;
+
+			
+			//here we create the actual map 
+			//with reference to the DOM ID
+			var map = new google.maps.Map(document.getElementById('map'), options);
+
+			/*footprintData[0].coords = `{lat: ${footprintData[0].coords[0]}, lng: ${footprintData[0].coords[1]}`;*/
+
+			function setMapOnAll(map) {
+				for (i = 0; i < markers.length; i++) {
+					markers[i].setMap(map);
+				}
+			}
+
+			function showMarkers() {
+				setMapOnAll(map);
+			}
+
+			function hideMarkers() {
+				setMapOnAll(null);
+			}
+
+			let toggleFootprints = function() {
+				if (!footprintMarkersActive) {
+					/*for (i = 0; i < markerInfo.length; i++) {
+						//noooo I need to make a function
+						//that intializes that array
+						//but does not show the markers
+						//watch I'm about to continuously add markers to
+						//the array
+						markers[i].setMap(map);
+					}*/
+					showMarkers()
+					footprintToggle.textContent = "Hide footprints";
+					footprintMarkersActive = true;
+					console.log(markers);
+				} else {
+					/*for (let i = 0; i < markers.length; i++) {
+					    markers[i].setMap(null);
+					}*/
+					hideMarkers()
+					footprintToggle.textContent = "Show footprints";
+					footprintMarkersActive = false;
+					console.log(markers);
+				}
+			}
+
+			//add listener to button to toggle footprints on or off
+			footprintToggle.addEventListener('click', toggleFootprints);
+
+
+			//create add marker function
+			function addMarker(footprintData) {
+				var marker = new google.maps.Marker({
+					position: footprintData.coords,
+					map: map,
+				});
+
+				//check for custom marker
+				if(footprintData.iconImage) {
+					// use .setIcon method 
+					marker.setIcon(footprintData.iconImage)
+				}
+
+				//check for date and name information
+								//check for marker's content and set
+				//and add info window listener
+				if(footprintData.name) {
+					var infoWindow = new google.maps.InfoWindow({
+						content: footprintData.name
+					})
+				}
+
+				if(footprintData.name) {
+					let infoWindowOpen = false;
+					marker.addListener('click', function() {
+						if (!infoWindowOpen) {
+							infoWindow.open(map, marker)
+							infoWindowOpen = true;
+						} else {
+							infoWindow.close()
+							infoWindowOpen = false;
+						}
+					});
+				}
+
+					
+				markers.push(marker);
+			}
+
+			//call add marker function so 
+			//footprints will be visible on load
+			for (i = 0; i < footprintData.length; i++) {
+				addMarker(footprintData[i]);
+			}
+			
+		}
+
+	</script>
+	<script async
+	    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCqOe9fM_PP7kzC-cqh9IiMogQKRlNFYWQ">
+	</script>
+</body>
+</html>
+
+<!--
+This is the old code for the google map request with the call back built into the script. I have moved the initMap call to be after the Fetch request is succesful.
+<script async
+	    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCqOe9fM_PP7kzC-cqh9IiMogQKRlNFYWQ&callback=initMap">
+	</script>
+-->
